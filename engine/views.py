@@ -49,7 +49,7 @@ from .models import Student
 
 class StudentCreateAPIView(APIView):
     def post(self, request, format=None):
-        data_list = request.data.get('data_list')
+        data_list = request.data.get('exam_details')
         print(data_list, 'data_list_str')
 
         if not data_list:
@@ -66,7 +66,9 @@ class StudentCreateAPIView(APIView):
         #         status=status.HTTP_400_BAD_REQUEST
         #     )
 
-        result = Student.student_create(data_list)
+        result = Student.student_create(**data_list)
+        print("=========ERRROR========")
+        print(result)
 
         if 'error' in result:
             return Response(
@@ -83,8 +85,9 @@ class StudentCreateAPIView(APIView):
 class StudentSeatAPIView(APIView):
     def get(self, request, format=None):
         registration_number = request.query_params.get('registration_number')
+        course_code = request.query_params.get('course_code')
 
-        print(registration_number, 'registration_number')
+        print(registration_number, 'registration_number', 'course_code', course_code)
 
         if not registration_number:
             return Response(
@@ -95,13 +98,17 @@ class StudentSeatAPIView(APIView):
             )
 
         try:
-            student = Student.get_seat_number(registration_number=registration_number)
-            print(student, 'student============')
+            student = Student.get_seat_number(registration_number=registration_number, course_code=course_code)
+            print(student, 'student============', student.exam.exam_date)
             if student:
                 return Response(
                     data={
                         "student_seat_number": student.seat_number,
                         "student_registration_number": student.registration_number,
+                        "exam_venue": student.exam.venue,
+                        "exam_date": student.exam.exam_date,
+                        "exam_time": student.exam.exam_time,
+                        "course": student.course.code,
                         "message": "Student registration number retrieved.",
                         'status': True
                     },
